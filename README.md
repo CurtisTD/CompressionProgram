@@ -12,3 +12,5 @@ Lempel-Ziv: Currently compresses images and text data.
 Huffman Code: Currently compresses text files.
 
 RLE: To be implemented
+
+Quanitzation for images: to be implemented
