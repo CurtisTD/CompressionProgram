@@ -7,10 +7,10 @@ This program implements a few compression algorithms in c++. These algorithms ca
 
 Currently there are the following algoriths implemented:
 
-Lempel-Ziv: Currently compresses images and text data.
+Lempel-Ziv: Currently compresses arbitrary data.
 
 Huffman Code: Currently compresses text files.
 
-RLE: To be implemented
+RLE: Currently compresses arbitrary data, though RLE will not often shrink a file size without other modifications prior.
 
-Quanitzation for images: to be implemented
+Quanitzation: to be implemented
