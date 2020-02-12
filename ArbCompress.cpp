@@ -22,7 +22,7 @@ References:
 #include <bitset>
 #include <limits>
 #include <vector>
-#include "ImageQuantize.cpp"
+#include "ImageQuantize.hpp"
 
 /*Type of code for compressing and decompressing*/
 using CodeType = std::uint16_t; //Unsigned 16bit short

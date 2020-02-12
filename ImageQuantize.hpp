@@ -1,4 +1,6 @@
-//#DEFINE IMAGEQUANTIZE_HPP
+#ifndef IMAGEQUANTIZE_HPP
+#define IMAGEQUANTIZE_HPP
+
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -6,6 +8,10 @@
 #include <vector>
 #include <iterator>
 
+/*
+* QuantizeBMP
+* Image processing function that quantizes a BMP file
+*/
 std::vector<char> quantizeBMP(const std::string &file)
 {
     static constexpr size_t HEADER_SIZE = 54;
@@ -33,7 +39,7 @@ std::vector<char> quantizeBMP(const std::string &file)
     auto height = *reinterpret_cast<uint32_t *>(&header[22]);
     auto depth = *reinterpret_cast<uint16_t *>(&header[28]);
 
-    //File info
+    // Prints file info
     std::cout << "File Size: " << fileSize << std::endl;
     std::cout << "Data Offset: " << dataOffset << std::endl;
     std::cout << "Width: " << width << std::endl;
@@ -51,15 +57,33 @@ std::vector<char> quantizeBMP(const std::string &file)
 
     char temp = 0;
 
-    //Reads from bottom right pixel to top left
-    for (int i = 0; i <= dataSize - 4; i += 3) {
+    //Reads from bottom left pixel to top right, 3 values at a time.
+    //Currently reads bottom line first, left to right, then goes up a row.
+    int col = 0;
+    int lineNum = height;
+    for (int i = 0; i <= dataSize - 1; i += 3) {
+        //Corrects BGR to RGB
         temp = img[i];
         img[i] = img[i+2];
         img[i+2] = temp;
 
-        //Beginning of line
-        std::cout << (i/3) << ":" << " R: " << int(img[i] & 0xff) << " G: " << int(img[i+1] & 0xff) << " B: " << int(img[i+2] & 0xff) << std::endl;
-    }
+        col = (i/3) % width;
+        //Finishes a row
+        if(col == 0) {
+            lineNum--;
+        }
+
+        //Pixel RGB value
+        std::cout << "Row " << lineNum << ", Col " << col << " ==> "  
+            << " R: " << int(img[i] & 0xff) << " G: " << int(img[i+1] & 0xff) << " B: " << int(img[i+2] & 0xff) << std::endl;
+
+
+        //Put pixels into similar 'Buckets'
+        
+    } 
 
     return img;
 }
+
+
+#endif
