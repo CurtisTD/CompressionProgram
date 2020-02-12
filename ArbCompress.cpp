@@ -2,6 +2,7 @@
 ArbCompress:
 This code is written using the C++11 standard as should be compiled with
 "-std=c++11" minimum.
+This also runs using windows libraries
 
 This program allows for arbitray data to be passed in to it. It then tests
 several implementations of different algorithms, including Lempel-Ziv, RLE, 
@@ -10,6 +11,7 @@ to compress and decompress these files.
 These are references I used to implement algortihms in C++.
 References: 
 1. Lempel-Ziv coding http://www.cplusplus.com/articles/iL18T05o/
+2. OpenCV
 */
 
 #include <iostream>
@@ -20,6 +22,7 @@ References:
 #include <bitset>
 #include <limits>
 #include <vector>
+#include "ImageQuantize.cpp"
 
 /*Type of code for compressing and decompressing*/
 using CodeType = std::uint16_t; //Unsigned 16bit short
@@ -32,7 +35,7 @@ std::vector<char> operator+ (std::vector<char> vecOfChars, char char_p) {
 
 /*Global variables*/
 namespace globals {
-//Allowed file types for compression and decompression
+//Allowed file types for certain compression and decompression
     std::set<std::string> allowedFileTypes {"png", "bmp", "txt"};
 
 //Dictionary Maximum Size uint16_t - 16bit short
@@ -177,15 +180,6 @@ void runLengthDecode(std::istream &is, std::ostream &os){
 }
 
 /*
-* Quantize
-* This function quantizes data to be better compressed
-*/
-void quantize(){
-    //TODO
-}
-
-
-/*
 * Prints instructions for user, in case of errors
 */
 void printInstructions() {
@@ -233,7 +227,14 @@ int main (int argc, char* argv[]) {
             //Switch statement to chosen algorithm
             switch ( switchHash(algorithmChoice) ){
                 case switchHash("RLE"): {
-                    std::ofstream outputFile(exactFileName + "_RLEcompressed." + savedExtension, std::ios_base::binary);        
+                    std::ofstream outputFile(exactFileName + "_RLEcompressed." + savedExtension, std::ios_base::binary);
+                    if(savedExtension == "bmp") { 
+                        //Quanitzes a bmp image before running RLE
+                        quantizeBMP(argv[3]); //Data quanitzed, then passed to RLE
+                    } else { 
+                        //Let user know about RLE drawbacks
+                        std::cout << "RLE may result in a larger file size for this type." << std::endl;
+                    }
                     runLengthEncode(inputFile, outputFile);
                     break;
                 }
