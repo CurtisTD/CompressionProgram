@@ -5,7 +5,7 @@ Main file for all compression/encoding files and algorithms.
 Author: Curtis Davis
 */
 
-#include "StringCompress.cpp"
+#include "StringCompress.hpp"
 //#include "ImageCompress.cpp"
 
 int main(){
