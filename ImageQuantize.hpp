@@ -8,6 +8,8 @@
 #include <vector>
 #include <iterator>
 
+#define HUE_AMOUNT 20 //Amount per segment of 360 hue colors (e.g 20 gives 18 segments)
+
 //Object to represent RGB of a pixel
 struct RgbPix {
     double r;
@@ -32,8 +34,6 @@ struct hsvCmp {
     }
 };
 
-
-
 //Object to keep x,y,z location inside a color space
 struct LocMarker {
     int x;
@@ -45,7 +45,11 @@ struct LocMarker {
 * HSV to RGB
 * Converts HSV value to RGB
 */
+RgbPix hsv2rgb(HsvPix in){
+    //TODO
+    exit(1);
 
+}
 
 
 /*
@@ -94,15 +98,22 @@ HsvPix rgb2hsv(RgbPix in){
 * QuantizeBMP
 * Image processing function that quantizes a BMP file
 */
-std::vector<char> quantizeBMP(const std::string &file) {
-    static constexpr size_t HEADER_SIZE = 54;
+void quantizeBMP(const std::string &file) {
 
+    //Output image/quanitzed image
+    std::ofstream outBMP;
+    outBMP.open("tempQuantizedBmp.bmp");
+
+    //Input stream of input image
     std::ifstream inputImage(file, std::ios::binary);
+
+    static constexpr size_t HEADER_SIZE = 54;
 
     //Get BMFILEHEADER
     std::array<char, HEADER_SIZE> header;
     inputImage.read(header.data(), header.size());
-
+    outBMP.write(header.data(), header.size()); //Gets header for output bmp
+    
     /* 
     * Gets BMP File Header Byte by Byte (54 Bytes)
     * ***Bytes#, description***
@@ -130,6 +141,7 @@ std::vector<char> quantizeBMP(const std::string &file) {
     //Sets a vector for BMP Info Header
     std::vector<char> img(dataOffset - HEADER_SIZE);
     inputImage.read(img.data(), img.size()); 
+    outBMP.write(img.data(), img.size()); //Resizes output bmp for later
 
     //Reads data for the picture pixels
     auto dataSize = ((width * 3 + 3) & (~3)) * height;
@@ -180,7 +192,7 @@ std::vector<char> quantizeBMP(const std::string &file) {
         * Value into 3 ranges 100%/3 = ~33 values per segment 
         */
         //Segmenting and putting values into buckets/bins
-        tempLoc.x = tempHsvPix.h / 20; //18 segments (0->17)
+        tempLoc.x = tempHsvPix.h / HUE_AMOUNT; //18 segments (0->17)
         tempLoc.y = (tempHsvPix.s * 100) / 33;
         tempLoc.z = (tempHsvPix.v * 100) / 33;
         
@@ -188,19 +200,19 @@ std::vector<char> quantizeBMP(const std::string &file) {
         imageHsvLoc.insert( std::make_pair(tempHsvPix, tempLoc) );        
     } 
 
+    /*****Quantize the image from their locations in the color space*****/
     std::map<HsvPix, LocMarker>::iterator it = imageHsvLoc.begin();
     std::cout << "imageHsvLoc contains " << imageHsvLoc.size() << " elements:" << std::endl;
     for (it=imageHsvLoc.begin(); it!=imageHsvLoc.end(); ++it) {
-        std::cout << "HSV "
-            << it->first.h << "," << it->first.s << "," << it->first.v << " @ "
-            << it->first.x << "," << it->first.y << " is in the color space of "
-            << it->second.x << "," << it->second.y << "," << it->second.z << std::endl;
-    }
-
-    //Quantize the image from their locations in the color space
+        if(it->first.x == 100) { //Just prints first line for testing
+            std::cout << "HSV "
+                << it->first.h << "," << it->first.s << "," << it->first.v << " @ "
+                << it->first.x << "," << it->first.y << " is in the color space of "
+                << it->second.x << "," << it->second.y << "," << it->second.z << std::endl;
+        }
+    }    
     
-
-    return img;
+    outBMP.close();
 }
 
 #endif
