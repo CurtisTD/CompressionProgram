@@ -227,21 +227,22 @@ int main (int argc, char* argv[]) {
             //Switch statement to chosen algorithm
             switch ( switchHash(algorithmChoice) ){
                 /* RLE */
-                case switchHash("RLE"): {
-                    std::ofstream outputFile(exactFileName + "_RLEcompressed." + savedExtension, std::ios_base::binary);
+                case switchHash("RLE"): {                    
                     if(savedExtension == "bmp") { 
                         std::cout << "This will result in a lossy compression, continue? (y/n) ";
                         char choice = 'y';
-//                        std::cin >> choice;
+                        std::cin >> choice;
                         if(choice == 'n') break; 
                         //Quanitzes a bmp image before running RLE
                         quantizeBMP(argv[3]); //Data quanitzed, then passed to RLE
-
+                        //RLE?
+                        break;
 
                     } else { 
                         //Let user know about RLE drawbacks
                         std::cout << "RLE may result in a larger file size for this type." << std::endl;
                     }
+                    std::ofstream outputFile(exactFileName + "_RLEcompressed." + savedExtension, std::ios_base::binary);
                     runLengthEncode(inputFile, outputFile);
                     break;
                 }

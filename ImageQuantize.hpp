@@ -7,6 +7,8 @@
 #include <array>
 #include <vector>
 #include <iterator>
+#include <cmath> //round()
+#include "BitMapFunctions.hpp"
 
 #define HUE_AMOUNT 20 //Amount per segment of 360 hue colors (e.g 20 gives 18 segments)
 
@@ -46,9 +48,49 @@ struct LocMarker {
 * Converts HSV value to RGB
 */
 RgbPix hsv2rgb(HsvPix in){
-    //TODO
-    exit(1);
+    RgbPix rgbRet;
+    rgbRet.r = 0;
+    rgbRet.g = 0;
+    rgbRet.b = 0;
 
+    double h_prime = in.h / 60;
+    double chroma = in.v * in.s;
+    
+    double x = chroma * (1 - abs( std::fmod(h_prime, 2.0) - 1));
+    double m = in.v - chroma;
+
+    if(h_prime <= 1) {
+        rgbRet.r = chroma;
+        rgbRet.g = x;
+        rgbRet.b = 0;
+    } else if (h_prime <= 2) {
+        rgbRet.r = x;
+        rgbRet.g = chroma;
+        rgbRet.b = 0;
+    } else if(h_prime <= 3) {
+        rgbRet.r = 0;
+        rgbRet.g = chroma;
+        rgbRet.b = x;
+    } else if (h_prime <= 4) {
+        rgbRet.r = 0;
+        rgbRet.g = x;
+        rgbRet.b = chroma;
+    } else if(h_prime <= 5) {
+        rgbRet.r = x;
+        rgbRet.g = 0;
+        rgbRet.b = chroma;
+    } else if (h_prime <= 6) {
+        rgbRet.r = chroma;
+        rgbRet.g = 0;
+        rgbRet.b = x;
+    }
+
+    //Set to valid RGB ranges
+    rgbRet.r = (rgbRet.r + m) * 255;
+    rgbRet.g = (rgbRet.g + m) * 255;
+    rgbRet.b = (rgbRet.b + m) * 255;
+
+    return rgbRet;
 }
 
 
@@ -100,19 +142,14 @@ HsvPix rgb2hsv(RgbPix in){
 */
 void quantizeBMP(const std::string &file) {
 
-    //Output image/quanitzed image
-    std::ofstream outBMP;
-    outBMP.open("tempQuantizedBmp.bmp");
-
     //Input stream of input image
     std::ifstream inputImage(file, std::ios::binary);
 
-    static constexpr size_t HEADER_SIZE = 54;
+    static constexpr size_t HEADER_SIZE = 54; //Size of header offset in bits
 
     //Get BMFILEHEADER
     std::array<char, HEADER_SIZE> header;
     inputImage.read(header.data(), header.size());
-    outBMP.write(header.data(), header.size()); //Gets header for output bmp
     
     /* 
     * Gets BMP File Header Byte by Byte (54 Bytes)
@@ -125,23 +162,22 @@ void quantizeBMP(const std::string &file) {
     * 28-29 Number of bits per pixel (default: 8)
     * 30-33 Type of compression on image
     */
-    auto fileSize = *reinterpret_cast<uint32_t *>(&header[2]);
     auto dataOffset = *reinterpret_cast<uint32_t *>(&header[10]);
     auto width = *reinterpret_cast<uint32_t *>(&header[18]);
     auto height = *reinterpret_cast<uint32_t *>(&header[22]);
-    auto depth = *reinterpret_cast<uint16_t *>(&header[28]);
 
-    //Prints file info
+    //Prints file info 
+    /*
     std::cout << "File Size: " << fileSize << std::endl;
     std::cout << "Data Offset: " << dataOffset << std::endl;
     std::cout << "Width: " << width << std::endl;
     std::cout << "Height: " << height << std::endl;
     std::cout << "Depth: " << depth << "-bit" << std::endl;
+    */
 
     //Sets a vector for BMP Info Header
     std::vector<char> img(dataOffset - HEADER_SIZE);
     inputImage.read(img.data(), img.size()); 
-    outBMP.write(img.data(), img.size()); //Resizes output bmp for later
 
     //Reads data for the picture pixels
     auto dataSize = ((width * 3 + 3) & (~3)) * height;
@@ -192,27 +228,41 @@ void quantizeBMP(const std::string &file) {
         * Value into 3 ranges 100%/3 = ~33 values per segment 
         */
         //Segmenting and putting values into buckets/bins
-        tempLoc.x = tempHsvPix.h / HUE_AMOUNT; //18 segments (0->17)
+        tempLoc.x = tempHsvPix.h / HUE_AMOUNT; //18 segments (0->19)
         tempLoc.y = (tempHsvPix.s * 100) / 33;
         tempLoc.z = (tempHsvPix.v * 100) / 33;
         
         //Save each pixels location in the colorspace and actual location
         imageHsvLoc.insert( std::make_pair(tempHsvPix, tempLoc) );        
-    } 
-
+    }
+    
+    /********Write new BMP image********/
+    unsigned char image[height][width][bytesPerPixel]; //Structure to hold new values
     /*****Quantize the image from their locations in the color space*****/
     std::map<HsvPix, LocMarker>::iterator it = imageHsvLoc.begin();
-    std::cout << "imageHsvLoc contains " << imageHsvLoc.size() << " elements:" << std::endl;
-    for (it=imageHsvLoc.begin(); it!=imageHsvLoc.end(); ++it) {
-        if(it->first.x == 100) { //Just prints first line for testing
-            std::cout << "HSV "
-                << it->first.h << "," << it->first.s << "," << it->first.v << " @ "
-                << it->first.x << "," << it->first.y << " is in the color space of "
-                << it->second.x << "," << it->second.y << "," << it->second.z << std::endl;
-        }
+
+    //Temp RGB for new image pixels, to be modified
+    HsvPix tempHSV;
+    RgbPix tempRGB;
+    for (it = imageHsvLoc.begin(); it != imageHsvLoc.end(); ++it) {
+        double quantH, quantS, quantV;
+        quantH = it->second.x * HUE_AMOUNT; //Gives new Hue to write
+        quantS = (it->second.y * 33.0) / 100.0; //Gives new Saturaton to write
+        quantV = (it->second.z * 33.0) / 100.0; //Gives new Value to write
+
+        tempHSV.h = quantH; //Holds temp HSV hue value
+        tempHSV.s = quantS; //Holds temp HSV saturation value
+        tempHSV.v = quantV; //Holds temp HSV intensity value
+        tempRGB = hsv2rgb(tempHSV);
+        
+        image[it->first.y][it->first.x][2] = (unsigned char)( tempRGB.r); ///red
+        image[it->first.y][it->first.x][1] = (unsigned char)( tempRGB.g); ///green
+        image[it->first.y][it->first.x][0] = (unsigned char)( tempRGB.b); ///blue
     }    
-    
-    outBMP.close();
+
+    //Make the BMP image with the new values
+    generateBitmapImage((unsigned char *)image, height, width);    
+
 }
 
 #endif
