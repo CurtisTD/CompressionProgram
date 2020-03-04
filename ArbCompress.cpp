@@ -226,18 +226,27 @@ int main (int argc, char* argv[]) {
         if(std::string("-c") == argv[1]){ 
             //Switch statement to chosen algorithm
             switch ( switchHash(algorithmChoice) ){
-                case switchHash("RLE"): {
-                    std::ofstream outputFile(exactFileName + "_RLEcompressed." + savedExtension, std::ios_base::binary);
+                /* RLE */
+                case switchHash("RLE"): {                    
                     if(savedExtension == "bmp") { 
+                        std::cout << "This will result in a lossy compression, continue? (y/n) ";
+                        char choice = 'y';
+                        std::cin >> choice;
+                        if(choice == 'n') break; 
                         //Quanitzes a bmp image before running RLE
                         quantizeBMP(argv[3]); //Data quanitzed, then passed to RLE
+                        //RLE?
+                        break;
+
                     } else { 
                         //Let user know about RLE drawbacks
                         std::cout << "RLE may result in a larger file size for this type." << std::endl;
                     }
+                    std::ofstream outputFile(exactFileName + "_RLEcompressed." + savedExtension, std::ios_base::binary);
                     runLengthEncode(inputFile, outputFile);
                     break;
                 }
+                /* Lempel-Ziv */
                 case switchHash("LZ"): {
                     //Open new file for LZCompressed output
                     std::ofstream outputFile(exactFileName + "_LZcompressed." + savedExtension, std::ios_base::binary);        
@@ -253,11 +262,13 @@ int main (int argc, char* argv[]) {
         /*Decompression Algorithms*/
         else if(std::string("-d") == argv[1] ) {
             switch ( switchHash(algorithmChoice) ){
+                /* RLE */
                 case switchHash("RLE"): {
                     std::ofstream outputFile(exactFileName + "_RLEdecompressed." + savedExtension, std::ios_base::binary);        
                     runLengthDecode(inputFile, outputFile);
                     break;
                 }
+                /* Lempel-Ziv */
                 case switchHash("LZ"):{
                     //Open new file for LZDecompressed output
                     std::ofstream outputFile(exactFileName + "_LZdecompressed." + savedExtension, std::ios_base::binary);        
