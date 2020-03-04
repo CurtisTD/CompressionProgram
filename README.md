@@ -1,7 +1,7 @@
 # CompressionProgram
 Independent Study - USF Spring 2020
 
-This program implements a few compression algorithms in c++. These algorithms can take in arbitrary data and attempt to compress the file size. The user can choose an algorithm and file to compress/decompress through the program.
+This program implements a few compression algorithms in C++. These algorithms can take in arbitrary data and attempt to compress the file size. The user can choose an algorithm and file to compress/decompress through the program.
 
 
 
