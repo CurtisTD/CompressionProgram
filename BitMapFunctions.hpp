@@ -3,37 +3,41 @@
 
 #include <stdio.h>
 
-const int bytesPerPixel = 3; /// red, green, blue
+const int bytesPerPixel = 4; /// red, green, blue
 const int fileHeaderSize = 14;
-const int infoHeaderSize = 40; //Total of 14 + 40 = 54bits offset
+const int infoHeaderSize = 40;
 
-void generateBitmapImage(unsigned char *image, int height, int width);
-unsigned char* createBitmapFileHeader(int height, int width, int paddingSize);
+void generateBitmapImage(unsigned char *image, int height, int width, int pitch, const char* imageFileName);
+unsigned char* createBitmapFileHeader(int height, int width, int pitch, int paddingSize);
 unsigned char* createBitmapInfoHeader(int height, int width);
 
-//Generates a BMP image
-void generateBitmapImage(unsigned char *image, int height, int width){
+void generateBitmapImage(unsigned char *image, int height, int width, int pitch, const char* imageFileName) {
 
-    unsigned char padding[3] = {0, 0, 0};
-    int paddingSize = (4 - (width*bytesPerPixel) % 4) % 4;
+    pitch = width * bytesPerPixel;
+    unsigned char padding[3] = { 0, 0, 0 };
+    int paddingSize = (4 - (/*width*bytesPerPixel*/ pitch) % 4) % 4;
 
-    unsigned char* fileHeader = createBitmapFileHeader(height, width, paddingSize);
+    unsigned char* fileHeader = createBitmapFileHeader(height, width, pitch, paddingSize);
     unsigned char* infoHeader = createBitmapInfoHeader(height, width);
 
-    FILE* imageFile = fopen("bmpImageOutput.bmp", "wb");
-    fwrite(fileHeader, 1, fileHeaderSize, imageFile); //Put file header into file
-    fwrite(infoHeader, 1, infoHeaderSize, imageFile); //Put info header into file
+    FILE* imageFile = fopen(imageFileName, "wb");
 
-    for(int i = height; i >= 0; i--) {
-        fwrite(image + (i * width * bytesPerPixel), bytesPerPixel, width, imageFile);
+    fwrite(fileHeader, 1, fileHeaderSize, imageFile);
+    fwrite(infoHeader, 1, infoHeaderSize, imageFile);
+
+    int i;
+    for (i = height; i >= 0 ; i--) {
+        fwrite(image + (i * pitch /*width*bytesPerPixel*/), bytesPerPixel, width, imageFile);
         fwrite(padding, 1, paddingSize, imageFile);
     }
 
     fclose(imageFile);
+    //free(fileHeader);
+    //free(infoHeader);
 }
 
-unsigned char* createBitmapFileHeader(int height, int width, int paddingSize){
-    int fileSize = fileHeaderSize + infoHeaderSize + (bytesPerPixel*width+paddingSize) * height;
+unsigned char* createBitmapFileHeader(int height, int width, int pitch, int paddingSize) {
+    int fileSize = fileHeaderSize + infoHeaderSize + (/*bytesPerPixel*width*/pitch + paddingSize) * height;
 
     static unsigned char fileHeader[] = {
         0,0, /// signature
@@ -53,8 +57,7 @@ unsigned char* createBitmapFileHeader(int height, int width, int paddingSize){
     return fileHeader;
 }
 
-//Creates the Info Header of the BMP
-unsigned char* createBitmapInfoHeader(int height, int width){
+unsigned char* createBitmapInfoHeader(int height, int width) {
     static unsigned char infoHeader[] = {
         0,0,0,0, /// header size
         0,0,0,0, /// image width
