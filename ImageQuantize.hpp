@@ -253,8 +253,6 @@ void quantizeBMP(const std::string &file) {
         image[it->first.y][it->first.x][0] = (unsigned char)((double) tempRGB.b); ///blue
     }    
 
-
-
     //Make the BMP image with the new values
     generateBitmapImage((unsigned char *)image, height, width, 0, "./Test Files/QuantizedImage.bmp");    
 

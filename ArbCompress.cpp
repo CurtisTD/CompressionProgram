@@ -197,8 +197,7 @@ int main (int argc, char* argv[]) {
             //Switch statement to chosen algorithm
             switch ( switchHash(algorithmChoice) ){
                 /* RLE */
-                case switchHash("RLE"): {     
-                    std::ofstream outputFile(exactFileName + "_RLEcompressed." + savedExtension, std::ios_base::binary);   
+                case switchHash("RLE"): {                           
 
                     if(savedExtension == "bmp") { 
                         std::cout << "For a BMP file, this will result in a lossy compression; continue? (y/n) ";
@@ -207,17 +206,19 @@ int main (int argc, char* argv[]) {
                         if(choice == 'n') break; 
                         //Quanitzes a bmp image before running RLE
                         quantizeBMP(argv[3]); //Data quanitzed, then passed to RLE
-                        std::ifstream quantBMP("QuantizedImage.bmp", std::ios_base::binary);
-                        runLengthEncode(quantBMP, outputFile);
+                        std::string inpp = "./Test Files/QuantizedImage.bmp";
+                        std::string outpp = (exactFileName + "_RLEcompressed." + savedExtension);
+                        bmpEncode(inpp, outpp);
                         break;
 
                     } else { 
+                        std::ofstream outputFile(exactFileName + "_RLEcompressed." + savedExtension, std::ios_base::binary); 
                         //Let user know about RLE drawbacks
                         std::cout << "RLE may result in a larger file size for this type." << std::endl;
+
+                        runLengthEncode(inputFile, outputFile);
+                        break;
                     }
-                    
-                    runLengthEncode(inputFile, outputFile);
-                    break;
                 }
                 /* Lempel-Ziv */
                 case switchHash("LZ"): {
@@ -237,9 +238,17 @@ int main (int argc, char* argv[]) {
             switch ( switchHash(algorithmChoice) ){
                 /* RLE */
                 case switchHash("RLE"): {
-                    std::ofstream outputFile(exactFileName + "_RLEdecompressed." + savedExtension, std::ios_base::binary);        
-                    runLengthDecode(inputFile, outputFile);
-                    break;
+
+                    if(savedExtension == "bmp") { 
+                        std::string inpp = argv[3];
+                        std::string outpp = (inpp + "_RLEdecompressed." + savedExtension);
+                        bmpDecode(inpp, outpp);
+                        break;
+                    } else {
+                        std::ofstream outputFile(exactFileName + "_RLEdecompressed." + savedExtension, std::ios_base::binary);        
+                        runLengthDecode(inputFile, outputFile);
+                        break;
+                    }
                 }
                 /* Lempel-Ziv */
                 case switchHash("LZ"):{
