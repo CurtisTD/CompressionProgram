@@ -7,10 +7,11 @@
 #include <array>
 #include <vector>
 #include <iterator>
+#include <iomanip>
 #include <cmath> //round()
 #include "BitMapFunctions.hpp"
 
-#define HUE_AMOUNT 20 //Amount per segment of 360 hue colors (e.g 20 gives 18 segments)
+#define HUE_AMOUNT 30 //Amount per segment of 360 hue colors (e.g 20 gives 18 segments)
 
 //Object to represent RGB of a pixel
 struct RgbPix {
@@ -136,6 +137,7 @@ HsvPix rgb2hsv(RgbPix in){
     return hsvResult;
 }
 
+
 /*
 * QuantizeBMP
 * Image processing function that quantizes a BMP file
@@ -165,15 +167,6 @@ void quantizeBMP(const std::string &file) {
     auto dataOffset = *reinterpret_cast<uint32_t *>(&header[10]);
     auto width = *reinterpret_cast<uint32_t *>(&header[18]);
     auto height = *reinterpret_cast<uint32_t *>(&header[22]);
-
-    //Prints file info 
-    /*
-    std::cout << "File Size: " << fileSize << std::endl;
-    std::cout << "Data Offset: " << dataOffset << std::endl;
-    std::cout << "Width: " << width << std::endl;
-    std::cout << "Height: " << height << std::endl;
-    std::cout << "Depth: " << depth << "-bit" << std::endl;
-    */
 
     //Sets a vector for BMP Info Header
     std::vector<char> img(dataOffset - HEADER_SIZE);
@@ -228,10 +221,10 @@ void quantizeBMP(const std::string &file) {
         * Value into 3 ranges 100%/3 = ~33 values per segment 
         */
         //Segmenting and putting values into buckets/bins
-        tempLoc.x = tempHsvPix.h / HUE_AMOUNT; //18 segments (0->19)
-        tempLoc.y = (tempHsvPix.s * 100) / 33;
-        tempLoc.z = (tempHsvPix.v * 100) / 33;
-        
+        tempLoc.x = tempHsvPix.h / HUE_AMOUNT; //18 segments (values of 0->19)
+        tempLoc.y = (tempHsvPix.s * 100.0) / 33.0;
+        tempLoc.z = (tempHsvPix.v * 100.0) / 33.0;
+
         //Save each pixels location in the colorspace and actual location
         imageHsvLoc.insert( std::make_pair(tempHsvPix, tempLoc) );        
     }
@@ -247,21 +240,21 @@ void quantizeBMP(const std::string &file) {
     for (it = imageHsvLoc.begin(); it != imageHsvLoc.end(); ++it) {
         double quantH, quantS, quantV;
         quantH = it->second.x * HUE_AMOUNT; //Gives new Hue to write
-        quantS = (it->second.y * 33.0) / 100.0; //Gives new Saturaton to write
-        quantV = (it->second.z * 33.0) / 100.0; //Gives new Value to write
+        quantS = (it->second.y * 0.33); //Gives new Saturaton to write
+        quantV = (it->second.z * 0.33); //Gives new Value to write
 
         tempHSV.h = quantH; //Holds temp HSV hue value
         tempHSV.s = quantS; //Holds temp HSV saturation value
         tempHSV.v = quantV; //Holds temp HSV intensity value
         tempRGB = hsv2rgb(tempHSV);
-        
-        image[it->first.y][it->first.x][2] = (unsigned char)( tempRGB.r); ///red
-        image[it->first.y][it->first.x][1] = (unsigned char)( tempRGB.g); ///green
-        image[it->first.y][it->first.x][0] = (unsigned char)( tempRGB.b); ///blue
+
+        image[it->first.y][it->first.x][2] = (unsigned char)((double) tempRGB.r); ///red
+        image[it->first.y][it->first.x][1] = (unsigned char)((double) tempRGB.g); ///green
+        image[it->first.y][it->first.x][0] = (unsigned char)((double) tempRGB.b); ///blue
     }    
 
     //Make the BMP image with the new values
-    generateBitmapImage((unsigned char *)image, height, width);    
+    generateBitmapImage((unsigned char *)image, height, width, 0, "./Test Files/QuantizedImage.bmp");    
 
 }
 
