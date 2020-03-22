@@ -14,3 +14,5 @@ Huffman Code: Currently compresses text files.
 RLE: Currently compresses arbitrary data, though RLE will not often shrink a file size without other modifications prior.
 
 Quanitzation: BMP images can now be quantized.
+
+BWT: To be implmented
