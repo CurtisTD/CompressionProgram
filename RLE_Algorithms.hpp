@@ -15,7 +15,6 @@ void runLengthEncode(std::istream &is, std::ostream &os){
     int count = 1; //Counts number of chars in a run
     is.get(prev_ch); //Get first char of input stream
     while (is.get(ch)) {
-std::cout << prev_ch << " ";
         if(ch != prev_ch) { //Character has changed from a run
             os << count << prev_ch;
             count = 0; //Reset          
@@ -39,10 +38,11 @@ void runLengthDecode(std::istream &is, std::ostream &os){
         }
     }
 }
+/* End of Arbitrary RLE Functions */
 
-
-
-/*********BMP Fucntions***********/
+/**********************************/
+/*********BMP Fucntions************/
+/**********************************/
 
 typedef struct SPixel {
     uint8_t red;    
@@ -126,9 +126,5 @@ void bmpDecode(std::string &input, std::string &output) {
     file.close();
     ready.close();
 }
-
-
-
-
 
 #endif //RLE_ALGOS_HPP
