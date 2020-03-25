@@ -99,7 +99,7 @@ void lzCompress(std::istream &is, std::ostream &os) {
 }
 
 /*
-* Lempel-Ziv Deompress
+* Lempel-Ziv Decompress
 * This function uses the Lempel-Ziv algorithm to decompress an image
 */
 void lzDecompress(std::istream &is, std::ostream &os) {

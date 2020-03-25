@@ -6,22 +6,13 @@
 #define START '^'
 #define END '|'
 
-#include <algorithm>
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
-
-//Takes the tags away to make the data printable and prints the data
+//Prints the data passed
 void printData(const std::string &stringParam) {
-    std::string toPrint = stringParam;
-    for (auto &ch : toPrint) {
-        if (ch == START) {
-            ch = '^';
-        } else if (ch == END) {
-            ch = '|';
-        }
-    }
-    std::cout << toPrint;
+    std::cout << stringParam;
 }
 
 //Does the rotations for the BW Transformation
@@ -110,7 +101,7 @@ void inverseBWT(std::istream &is, std::ostream &os) {
     
     //Gets the inverted BWT data
     std::string inversedBWTString = invertFunc(r);
-    std::cout << std::endl << "Inverted BTW text: " << inversedBWTString << std::endl << std::endl;
+    std::cout << std::endl << "Inverted BWT text: " << inversedBWTString << std::endl << std::endl;
     os << inversedBWTString;
 }
 
