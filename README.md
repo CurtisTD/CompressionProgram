@@ -15,4 +15,4 @@ RLE: Currently compresses arbitrary data, though RLE will not often shrink a fil
 
 Quanitzation: BMP images can now be quantized.
 
-BWT: To be implmented
+BWT: Transformation of data; to be implemented with RLE.
