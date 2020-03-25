@@ -25,6 +25,7 @@ References:
 #include "RLE_Algorithms.hpp"
 #include "ImageQuantize.hpp"
 #include "Huff_Algo.hpp"
+#include "BWTransform.hpp"
 
 /*Type of code for compressing and decompressing*/
 using CodeType = std::uint16_t; //Unsigned 16bit short
@@ -152,7 +153,7 @@ void lzDecompress(std::istream &is, std::ostream &os) {
 /*
 * Prints instructions for user, in case of errors
 */
-void printInstructions() {
+void printCompressionInstructions() {
     std::cout << std::endl << "*******Instructions*******" << std::endl <<
         "To compress and decompress the file, type either of the following, respectively: " << std::endl <<
         "    LZCompress.exe -c AlgX inputFileName" << std::endl <<
@@ -169,7 +170,7 @@ int main (int argc, char* argv[]) {
     //argv[0]: executable, argv[1]: -c/-d option, argv[2]: algorithm choice, argv[3]: file input
 
     if (argc != 4) {
-        printInstructions();
+        printCompressionInstructions();
         return EXIT_FAILURE;
     }
 
@@ -177,7 +178,7 @@ int main (int argc, char* argv[]) {
     std::ifstream inputFile(argv[3], std::ios_base::binary);
     if(!inputFile.is_open()){
         std::cout << "Could not open the specified file.";
-        printInstructions();
+        printCompressionInstructions();
         return EXIT_FAILURE;
     }
 
@@ -192,13 +193,13 @@ int main (int argc, char* argv[]) {
 
     /*Determines the user's intention for the input file*/
     if (globals::allowedFileTypes.find(savedExtension) != globals::allowedFileTypes.end()) { //If file type is allowed      
-        /*Compression Algorithm Choices*/  
+        /* Compression Algorithm Choices */  
         if(std::string("-c") == argv[1]){ 
             //Switch statement to chosen algorithm
             switch ( switchHash(algorithmChoice) ){
                 /* RLE */
                 case switchHash("RLE"): {                           
-
+                    /* BMP File Type */
                     if(savedExtension == "bmp") { 
                         std::cout << "For a BMP file, this will result in a lossy compression; continue? (y/n) ";
                         char choice = 'y';
@@ -228,17 +229,16 @@ int main (int argc, char* argv[]) {
                     break;
                 }
                 default: {
-                    printInstructions();
+                    printCompressionInstructions();
                     return EXIT_FAILURE;
                 }
             }            
         } 
-        /*Decompression Algorithms*/
+        /* Decompression Algorithms */
         else if(std::string("-d") == argv[1] ) {
             switch ( switchHash(algorithmChoice) ){
                 /* RLE */
                 case switchHash("RLE"): {
-
                     if(savedExtension == "bmp") { 
                         std::string inpp = argv[3];
                         std::string outpp = (inpp + "_RLEdecompressed." + savedExtension);
@@ -258,10 +258,25 @@ int main (int argc, char* argv[]) {
                     break;
                 }
                 default: {
-                    printInstructions();
+                    printCompressionInstructions();
                     return EXIT_FAILURE;
                 }
             }               
+        } 
+        /*Transformation Algorithms*/
+        else if(std::string("-trans") == argv[1] ) {
+            switch ( switchHash(algorithmChoice) ){
+                /* BWT Transformation */
+                case switchHash("BWT"): {
+                    std::ofstream outputFile(exactFileName + "_BWTTransform." + savedExtension, std::ios_base::binary);        
+                    BWTransform(inputFile, outputFile);
+                    break;
+                }
+                default: {
+                    printCompressionInstructions();
+                    return EXIT_FAILURE;
+                }
+            }
         } else {
             //Print an error
             std::cout <<
@@ -270,7 +285,7 @@ int main (int argc, char* argv[]) {
             return EXIT_FAILURE;
         }
     } else {
-        printInstructions();
+        printCompressionInstructions();
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
