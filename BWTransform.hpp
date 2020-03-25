@@ -1,87 +1,117 @@
-//BWT - 'Burrows-Wheeler Transform' of data
-//To be combined with compression --> RLE or such
+//BWTransform - This file implements the BW-Transformation algorithm 
+//as well as the inverse of BWT data
 
-#ifndef BWT_TRANSFORM_HPP
-#define BWT_TRANSFORM_HPP
+#ifndef BW_TRANSFORM_HPP
+#define BW_TRANSFORM_HPP
+#define START '^'
+#define END '|'
 
-#include <iostream> 
-#include <stdlib.h> 
-#include <string.h> 
+#include <algorithm>
+#include <iostream>
+#include <vector>
 
-//Struct stores rotation data
-struct dataRotation { 
-    int index; 
-    char* suffix; 
-}; 
 
-//Compares two rotation objects and to sort alphabetically
-int rotationCompare(const void* rot_1, const void* rot_2) {
-    struct dataRotation* rot_1_A = (struct dataRotation*) rot_1;
-    struct dataRotation* rot_2_B = (struct dataRotation*) rot_2;
-    int ret = strcmp(rot_1_A->suffix, rot_2_B->suffix);
-    return ret;
+//Takes the tags away to make the data printable and prints the data
+void printData(const std::string &stringParam) {
+    std::string toPrint = stringParam;
+    for (auto &ch : toPrint) {
+        if (ch == START) {
+            ch = '^';
+        } else if (ch == END) {
+            ch = '|';
+        }
+    }
+    std::cout << toPrint;
 }
 
-int* transformSuffArray(char* inputText, int lengthOfText) {
-    //Holds an array of rotations and their index/place
-    struct dataRotation rotations[lengthOfText];
-    int i; //Definition of variable for loops
-
-    //Stores old indices
-    for(i = 0; i < lengthOfText; i++) {
-        rotations[i].index = i;
-        rotations[i].suffix = (inputText + i);
+//Does the rotations for the BW Transformation
+void rotate(std::string &toRotate) {
+    char t = toRotate[toRotate.length() - 1];
+    for (int i = toRotate.length() - 1; i > 0; i--) {
+        toRotate[i] = toRotate[i - 1];
     }
-
-    //Quick sort algorithm to sort rotations using our comparator function 'rotationCompare'
-    qsort(rotations, lengthOfText, sizeof(struct dataRotation), rotationCompare);
-
-    int* indexArray = (int*) malloc(lengthOfText * sizeof(int));
-    for(i = 0; i < lengthOfText; i++) {
-        indexArray[i] = rotations[i].index;
-    }
-
-    return indexArray;
+    toRotate[0] = t;
 }
 
-//Takes the rotation array and returns the BWT of the text
-char* findLastChar(char* inputText, int* suffArray, int sizeParam) {
-    char* BWT_Array = (char*) malloc(sizeParam * sizeof(char));
-    int i;
-
-    for(i = 0; i < sizeParam; i++) {
-        int j = suffArray[i] - 1; //Gets last char index
-        if(j < 0) {
-            j = j + sizeParam;
-        }    
-        BWT_Array[i] = inputText[j];
-    }
-    BWT_Array[i] = '\0'; //Null terminator
-    return BWT_Array;
-}
-
-//Main function - takes in input file and produces output file
-void BWTransform(std::istream &is, std::ostream &os){
+//Forward BWT- BW Transformation to data
+void forwardBWT(std::istream &is, std::ostream &os) {
     //Gets input data string
     char ch;
-    std::string inputStringParam;
+    std::string data;
     while(is.get(ch)) {
-        inputStringParam.push_back(ch);
+        data.push_back(ch);
     }
+    std::cout << std::endl << "Input text: " << data << std::endl;
 
-    //Definition of variables
-    int lengthOfInput = inputStringParam.length();
-    char inputText[lengthOfInput];
-    strcpy(inputText, inputStringParam.c_str());
+    for (char ch : data) {
+        if (ch == START || ch == END) {
+            std::cout << "Input data cannot contain '^' or '|' chars." << std::endl;
+        }
+    }
+ 
+    //Create string to modify
+    std::string temp;
+    temp.push_back(START);
+    temp.append(data);
+    temp.push_back(END);
 
-    //Gets the suffix array of the input text
-    int* suffArray = transformSuffArray(inputText, lengthOfInput);
-
-    //Get last char of each rotation and add them to the output
-    char* BWT_Array = findLastChar(inputText, suffArray, lengthOfInput);
-
-    std::cout << "Input text: " << inputText << std::endl;
-    std::cout << "BWT of input text: " << BWT_Array << std::endl;
+    //Create a table for rotations
+    std::vector<std::string> table;
+    for (size_t i = 0; i < temp.length(); i++) {
+        table.push_back(temp);
+        rotate(temp); //Rotation
+    }
+    //Sort the data
+    std::sort(table.begin(), table.end());
+ 
+    std::string out;
+    for (auto &temp : table) {
+        out += temp[temp.length() - 1];
+    }
+    
+    std::cout << "BWTransformed Data: ";
+    printData(out);
+    std::cout << std::endl << std::endl;
+    os << out;
 }
 
-#endif //BWT_TRANSFORM_HPP
+/****************Inverse BWT Functions*********************/
+
+//Inverse BWT function, takes BWTransformed data and decodes it
+std::string invertFunc(const std::string &bwtData) {
+
+    std::cout << std::endl << "BWT'd text: " << bwtData;
+    int dataLength = bwtData.length();
+
+    //'Decodes' the BWT data by traversing the table and sorting
+    std::vector<std::string> table(dataLength);
+    for (int i = 0; i < dataLength; i++) {
+        for (int j = 0; j < dataLength; j++) {
+            table[j] = bwtData[j] + table[j];
+        }
+        std::sort(table.begin(), table.end());
+    }
+    for (auto &row : table) {
+        //Takes the 'tagging' chars away from the string
+        if (row[row.length() - 1] == END) {
+            return row.substr(1, row.length() - 2);
+        }
+    }
+    return NULL;
+}
+
+void inverseBWT(std::istream &is, std::ostream &os) {
+    //Gets input data string
+    char ch;
+    std::string r;
+    while(is.get(ch)) {
+        r.push_back(ch);
+    }
+    
+    //Gets the inverted BWT data
+    std::string inversedBWTString = invertFunc(r);
+    std::cout << std::endl << "Inverted BTW text: " << inversedBWTString << std::endl << std::endl;
+    os << inversedBWTString;
+}
+
+#endif //BW_TRANSFORM_HPP

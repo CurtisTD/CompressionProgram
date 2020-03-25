@@ -268,8 +268,14 @@ int main (int argc, char* argv[]) {
             switch ( switchHash(algorithmChoice) ){
                 /* BWT Transformation */
                 case switchHash("BWT"): {
-                    std::ofstream outputFile(exactFileName + "_BWTTransform." + savedExtension, std::ios_base::binary);        
-                    BWTransform(inputFile, outputFile);
+                    std::ofstream outputFile(exactFileName + "_BWTransformed." + savedExtension, std::ios_base::binary);        
+                    forwardBWT(inputFile, outputFile);
+                    break;
+                }
+                /* Inverse BW-Transformation */
+                case switchHash("inBWT"): {
+                    std::ofstream outputFile(exactFileName + "_InverseBWTransform." + savedExtension, std::ios_base::binary);        
+                    inverseBWT(inputFile, outputFile);
                     break;
                 }
                 default: {
