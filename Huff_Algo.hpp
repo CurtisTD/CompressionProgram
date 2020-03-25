@@ -17,7 +17,7 @@ Author: Curtis Davis
 #include <unordered_map>
 
 //Node of the Huffman Tree
-struct HuffNode{
+struct HuffNode {
     char ch;
     int num;
     HuffNode *leftChild;
@@ -33,7 +33,7 @@ struct HuffNode{
 };
 
 //Comparison gives 'priority' to least occurring character
-struct compareNodeWeights{
+struct compareNodeWeights {
     bool operator ()(HuffNode* leftNode, HuffNode* rightNode){
         return leftNode->num > rightNode->num;
     }
@@ -81,7 +81,6 @@ void buildHuffTree(std::string textInput){
     for(char ch : textInput){
         numOfChars[ch]++;
     }
-    
 
     // Creates a priority queue for the nodes of the Huffman tree, lower freq = higher priority
     std::priority_queue<HuffNode*, std::vector<HuffNode*>, compareNodeWeights> minHeap;
