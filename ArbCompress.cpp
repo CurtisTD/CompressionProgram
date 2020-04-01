@@ -23,132 +23,23 @@ References:
 #include <limits>
 #include <vector>
 #include "RLE_Algorithms.hpp"
+#include "LZ_Algorithms.hpp"
 #include "ImageQuantize.hpp"
 #include "Huff_Algo.hpp"
 #include "BWTransform.hpp"
 
-/*Type of code for compressing and decompressing*/
-using CodeType = std::uint16_t; //Unsigned 16bit short
-
-/*Overload of + operator for a vector and given char*/
-std::vector<char> operator+ (std::vector<char> vecOfChars, char char_p) {
-    vecOfChars.push_back(char_p);
-    return vecOfChars;
-}
 
 /*Global variables*/
 namespace globals {
+
 //Allowed file types for certain compression and decompression
     std::set<std::string> allowedFileTypes {"png", "bmp", "txt"};
-
-//Dictionary Maximum Size uint16_t - 16bit short
-    const CodeType dms {std::numeric_limits<CodeType>::max()};
 }
 
 /*Helper function; c++11 constant expression to aid switch string statements*/
 constexpr unsigned int switchHash(const char *s, int off = 0) {                        
     return !s[off] ? 5381 : (switchHash(s, off+1)*33) ^ s[off];                           
 }
-
-/*
-* Lempel-Ziv Compress
-* This function uses the Lempel-Ziv algorithm to compress an image
-*/
-void lzCompress(std::istream &is, std::ostream &os) {
-    //Compression dictonary
-    std::map<std::vector<char>, CodeType> compDictionary;
-    
-    //Resets the dictionary
-    const auto resetDictionary = [&compDictionary] {
-        compDictionary.clear();
-
-        const long int minc = std::numeric_limits<char>::min();
-        const long int maxc = std::numeric_limits<char>::max();
-
-        for (long int c = minc; c <= maxc; ++c) {
-            const CodeType dictionarySize = compDictionary.size();
-
-            compDictionary[{static_cast<char> (c)}] = dictionarySize;
-        }
-    };
-
-    resetDictionary();
-
-    //While loop to get characters from input stream
-    std::vector<char> str;
-    char ch;
-    while (is.get(ch)) {
-        //If the dictionary size becomes too large
-        if (compDictionary.size() == globals::dms) {
-            resetDictionary();
-        }
-        str.push_back(ch);
-        if (compDictionary.count(str) == 0) {
-            const CodeType dictionarySize = compDictionary.size();
-
-            compDictionary[str] = dictionarySize;
-            str.pop_back();
-            os.write(reinterpret_cast<const char*> (&compDictionary.at(str)), sizeof (CodeType));
-            str = {ch};
-        }
-    }
-
-    if (!str.empty()) {
-        os.write(reinterpret_cast<const char *> (&compDictionary.at(str)), sizeof (CodeType));
-    }
-}
-
-/*
-* Lempel-Ziv Decompress
-* This function uses the Lempel-Ziv algorithm to decompress an image
-*/
-void lzDecompress(std::istream &is, std::ostream &os) {
-    std::vector<std::vector<char>> dictionary;
-
-    //Lamda to reset dictionary and set limits
-    const auto reset_dictionary = [&dictionary] {
-        dictionary.clear();
-        dictionary.reserve(globals::dms); //Reserve space for dictionary's max size
-
-        const long int minc = std::numeric_limits<char>::min(); //Min chars
-        const long int maxc = std::numeric_limits<char>::max(); //Max chars
-
-        for (long int c = minc; c <= maxc; ++c) {
-            dictionary.push_back({static_cast<char> (c)}); //Put 'chars' to setup dictionary
-        }
-    };
-
-    reset_dictionary();
-    std::vector<char> str; // String
-    CodeType key;
-
-    //Read the LZ encoded input stream, with 'keys'
-    while ( is.read(reinterpret_cast<char *> (&key), sizeof (CodeType)) ) {
-        //Dictionary reaches maximum size, reset
-        if (dictionary.size() == globals::dms){
-            reset_dictionary();
-        }
-        if (key > dictionary.size()) { //If key is bigger than dictionary size, error
-            throw std::runtime_error("invalid compressed code");
-        }
-        if (key == dictionary.size()) {
-            dictionary.push_back(str + str.front());
-        } else if (!str.empty()) {
-            dictionary.push_back(str + dictionary.at(key).front());
-        }
-        //Write key and the size of the key
-        os.write(&dictionary.at(key).front(), dictionary.at(key).size());
-        //String is current dictionary
-        str = dictionary.at(key);
-    }
-
-    //Error checking
-    if (!is.eof() || is.gcount() != 0) {
-        throw std::runtime_error("corrupted compressed file");
-    }
-}
-
-
 
 /*
 * Prints instructions for user, in case of errors
@@ -208,12 +99,39 @@ int main (int argc, char* argv[]) {
                         //Quanitzes a bmp image before running RLE
                         quantizeBMP(argv[3]); //Data quanitzed, then passed to RLE
                         std::string inpp = "./Test Files/QuantizedImage.bmp";
-                        std::string outpp = (exactFileName + "_RLEcompressed." + savedExtension);
+                        std::string outpp = (exactFileName + "_RLEcompr." + savedExtension);
                         bmpEncode(inpp, outpp);
                         break;
 
+                    } else if(savedExtension == "txt") {
+                        /* BWTransform RLE */
+                        std::cout << "This will use BW-Transformation before RLE." << std::endl;
+                        std::ofstream outputFileBWT(exactFileName + "_BWT." + savedExtension, std::ios_base::binary);
+                        forwardBWT(inputFile, outputFileBWT);
+                        inputFile.close();
+                        outputFileBWT.close();
+
+                        //Input BWT file
+                        std::ifstream inputFileBWT(exactFileName + "_BWT." + savedExtension, std::ios_base::binary);
+                        //Output BWT->RLE file
+                        std::ofstream outputFileBWTRLE(exactFileName + "_BWT_RLEcompr." + savedExtension, std::ios_base::binary); 
+
+                        runLengthEncode(inputFileBWT, outputFileBWTRLE);
+                        inputFileBWT.close();
+                        outputFileBWTRLE.close();
+                        
+
+                        //Outputs RLE only on text file for testing
+                        /*
+                        std::ifstream inputFileRLE(argv[3], std::ios_base::binary);
+                        std::ofstream outputFileRLEOnly(exactFileName + "_RLEOnly." + savedExtension, std::ios_base::binary);
+                        runLengthEncode(inputFileRLE, outputFileRLEOnly);
+                        inputFileRLE.close();
+                        outputFileRLEOnly.close();
+                        */
+                        break;
                     } else { 
-                        std::ofstream outputFile(exactFileName + "_RLEcompressed." + savedExtension, std::ios_base::binary); 
+                        std::ofstream outputFile(exactFileName + "_RLEcompr." + savedExtension, std::ios_base::binary); 
                         //Let user know about RLE drawbacks
                         std::cout << "RLE may result in a larger file size for this type." << std::endl;
 
@@ -240,10 +158,26 @@ int main (int argc, char* argv[]) {
                 /* RLE */
                 case switchHash("RLE"): {
                     if(savedExtension == "bmp") { 
+                        //RLE BMP compression
                         std::string inpp = argv[3];
                         std::string outpp = (inpp + "_RLEdecompressed." + savedExtension);
                         bmpDecode(inpp, outpp);
                         break;
+                    } else if(savedExtension == "txt"){
+                        //Undo RLE first
+                        std::ofstream outInvertRLE(exactFileName + "_RLEdecomp." + savedExtension, std::ios_base::binary);
+                        runLengthDecode(inputFile, outInvertRLE); //Undoes RLE
+                        inputFile.close();
+                        outInvertRLE.close();
+
+                        //Undo BWT next
+                        std::ifstream inputBWTinvertedRLE(exactFileName + "_RLEdecomp." + savedExtension, std::ios_base::binary);
+                        std::ofstream outinvertedBWTinvertedRLE(exactFileName + "_RLEdecomp_BWTinvert." + savedExtension, std::ios_base::binary);
+                        inverseBWT(inputBWTinvertedRLE, outinvertedBWTinvertedRLE);
+                        inputBWTinvertedRLE.close();
+                        outinvertedBWTinvertedRLE.close();
+                        break;
+                    
                     } else {
                         std::ofstream outputFile(exactFileName + "_RLEdecompressed." + savedExtension, std::ios_base::binary);        
                         runLengthDecode(inputFile, outputFile);

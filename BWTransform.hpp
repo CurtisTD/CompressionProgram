@@ -32,7 +32,7 @@ void forwardBWT(std::istream &is, std::ostream &os) {
     while(is.get(ch)) {
         data.push_back(ch);
     }
-    std::cout << std::endl << "Input text: " << data << std::endl;
+    //std::cout << std::endl << "Input text: " << data << std::endl;
 
     for (char ch : data) {
         if (ch == START || ch == END) {
@@ -57,13 +57,16 @@ void forwardBWT(std::istream &is, std::ostream &os) {
  
     std::string out;
     for (auto &temp : table) {
-        out += temp[temp.length() - 1];
+        os <<  temp[temp.length() - 1];
     }
     
+    /*
     std::cout << "BWTransformed Data: ";
     printData(out);
     std::cout << std::endl << std::endl;
-    os << out;
+    */
+
+    //os << out;
 }
 
 /****************Inverse BWT Functions*********************/
@@ -71,7 +74,7 @@ void forwardBWT(std::istream &is, std::ostream &os) {
 //Inverse BWT function, takes BWTransformed data and decodes it
 std::string invertFunc(const std::string &bwtData) {
 
-    std::cout << std::endl << "BWT'd text: " << bwtData;
+    //std::cout << std::endl << "BWT'd text: " << bwtData;
     int dataLength = bwtData.length();
 
     //'Decodes' the BWT data by traversing the table and sorting
@@ -101,7 +104,7 @@ void inverseBWT(std::istream &is, std::ostream &os) {
     
     //Gets the inverted BWT data
     std::string inversedBWTString = invertFunc(r);
-    std::cout << std::endl << "Inverted BWT text: " << inversedBWTString << std::endl << std::endl;
+    //std::cout << std::endl << "Inverted BWT text: " << inversedBWTString << std::endl << std::endl;
     os << inversedBWTString;
 }
 
