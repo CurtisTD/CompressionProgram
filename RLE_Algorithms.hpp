@@ -9,7 +9,7 @@ using std::ios;
 * Run Length Encoding
 * This function uses the RLE algorithm to encode/compress data
 */
-void runLengthEncode(std::istream &is, std::ostream &os){    
+void runLengthEncode(std::istream &is, std::ostream &os){
     char ch; //Buffering character
     char prev_ch; //Holds previous characters
     int count = 1; //Counts number of chars in a run
@@ -17,6 +17,7 @@ void runLengthEncode(std::istream &is, std::ostream &os){
     while (is.get(ch)) {
         if(ch != prev_ch) { //Character has changed from a run
             os << count << prev_ch;
+            
             count = 0; //Reset          
         }
         count++;
