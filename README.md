@@ -4,7 +4,7 @@ Independent Study - USF Spring 2020
 This program implements a few compression algorithms in C++. These algorithms can take in arbitrary data and attempt to compress the file size. The user can choose an algorithm and file to compress/decompress through the program.
 
 
-##Currently implemented compression algorithms:
+## Currently implemented compression algorithms:
 Lempel-Ziv: Currently compresses arbitrary data.
 
 Huffman Code: Currently compresses text files.
@@ -14,7 +14,7 @@ RLE: Currently compresses arbitrary data, though RLE will not often shrink a fil
 Quanitzation: BMP images can now be quantized.
 
 
-##Currently implemented transformations:
+## Currently implemented transformations:
 BWT: Burrows–Wheeler Transformation of data, works in conjunction with RLE.
 
 ### To implement: 
