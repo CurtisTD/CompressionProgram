@@ -32,7 +32,10 @@ void runLengthEncode(std::istream &is, std::ostream &os){
 * Run Length Decoding
 * This function uses the RLE algorithm to decode/decompress data
 */
-void runLengthDecode(std::istream &is, std::ostream &os){
+std::string runLengthDecode(std::istream &is){
+
+    std::string returnString;
+
     //Holds number to print
     std::string numToPrint;
 
@@ -49,7 +52,7 @@ void runLengthDecode(std::istream &is, std::ostream &os){
                 int iterationsToPrint = std::stoi(numToPrint); //Converts to int to print
                 is.get(ch); //Gets char to print
                 while(iterationsToPrint--){
-                    os << ch;
+                    returnString.push_back( ch );
                 }                
             }
             catch(std::invalid_argument const &exceptArg) {
@@ -62,6 +65,7 @@ void runLengthDecode(std::istream &is, std::ostream &os){
             numToPrint = ""; //Clears num and starts again
         }
     }
+    return returnString;
 }
 /* End of Arbitrary RLE Functions */
 

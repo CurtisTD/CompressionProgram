@@ -11,11 +11,11 @@ to compress and decompress these files.
 These are references I used to implement algortihms in C++.
 References: 
 1. Lempel-Ziv coding http://www.cplusplus.com/articles/iL18T05o/
-2. OpenCV
 */
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <map>
 #include <set>
@@ -51,6 +51,13 @@ void printCompressionInstructions() {
         "    LZCompress.exe -d AlgX compressedFileName" << std::endl <<
         "    'AlgX' is the algorithm to be used, currently 'LZ' or 'RLE'" << std::endl <<
         "This program currently allows for .png and .bmp input files." << std::endl << std::endl;
+}
+
+/*
+* Prints string input to a file
+*/
+void printStringToFile(std::string stringToPrint, std::ostream &os) {
+    os << stringToPrint;
 }
 
 /* 
@@ -113,20 +120,22 @@ int main (int argc, char* argv[]) {
 
                         if(bwtAnswer == 'y') {
                             /* BWTransform RLE */
-                            std::cout << "This will use BW-Transformation before RLE." << std::endl;
-                            std::ofstream outputFileBWT(exactFileName + "_BWT." + savedExtension, std::ios_base::binary);
-                            forwardBWT(inputFile, outputFileBWT);
-                            inputFile.close();
-                            outputFileBWT.close();
+                            std::cout << "This will now use BW-Transformation before RLE." << std::endl;
 
-                            //Input BWT file
-                            std::ifstream inputFileBWT(exactFileName + "_BWT." + savedExtension, std::ios_base::binary);
+                            //Creates string to hold BWT data
+                            std::string BWTString = forwardBWT(inputFile);
+                            
+                            //Creates a string stream for RLE encoding of BWT data
+                            std::stringstream BWTStringStream;
+                            BWTStringStream << BWTString;                            
+                            
+                            //Creates final output file
+                            std::ofstream outputFileBWTRLE(exactFileName + "_BWT_RLEcompr." + savedExtension, std::ios_base::binary);
+
                             //Output BWT->RLE file
-                            std::ofstream outputFileBWTRLE(exactFileName + "_BWT_RLEcompr." + savedExtension, std::ios_base::binary); 
-
-                            runLengthEncode(inputFileBWT, outputFileBWTRLE);
-                            inputFileBWT.close();
-                            outputFileBWTRLE.close();
+                            runLengthEncode(BWTStringStream, outputFileBWTRLE);
+                            
+                            outputFileBWTRLE.close();                   
                         }
 
                         //DEBUG: Outputs RLE only on text file for testing - set to 1 to create RLE only file
@@ -138,6 +147,7 @@ int main (int argc, char* argv[]) {
                             inputFileRLE.close();
                             outputFileRLEOnly.close();
                         }
+
                         break;
                     } else { 
                         std::ofstream outputFile(exactFileName + "_RLEcompr." + savedExtension, std::ios_base::binary); 
@@ -173,26 +183,25 @@ int main (int argc, char* argv[]) {
                         bmpDecode(inpp, outpp);
                         break;
                    } else if(savedExtension == "txt"){
-                        //TODO
-                        /* Return as strings and create a function to save to a file instead */
 
                         //Undo RLE first
-                        std::ofstream outInvertRLE(exactFileName + "_RLEdecomp." + savedExtension, std::ios_base::binary);
-                        runLengthDecode(inputFile, outInvertRLE); //Undoes RLE
-                        inputFile.close();
-                        outInvertRLE.close();
+                        std::string decodedRLE = runLengthDecode(inputFile); //Undoes RLE
+
+                        //Creates string stream in lieu of input file stream
+                        std::stringstream inputBWTinvertedRLE;
+                        inputBWTinvertedRLE << decodedRLE;
 
                         //Undo BWT next
-                        std::ifstream inputBWTinvertedRLE(exactFileName + "_RLEdecomp." + savedExtension, std::ios_base::binary);
                         std::ofstream outinvertedBWTinvertedRLE(exactFileName + "_RLEdecomp_BWTinvert." + savedExtension, std::ios_base::binary);
                         inverseBWT(inputBWTinvertedRLE, outinvertedBWTinvertedRLE);
-                        inputBWTinvertedRLE.close();
                         outinvertedBWTinvertedRLE.close();
 
                         break;                    
                     } else {
                         std::ofstream outputFile(exactFileName + "_RLEdecompressed." + savedExtension, std::ios_base::binary);        
-                        runLengthDecode(inputFile, outputFile);
+                        std::string decodedData = runLengthDecode(inputFile);
+
+                        printStringToFile(decodedData, outputFile);
                         break;
                     }
                 }
@@ -215,7 +224,10 @@ int main (int argc, char* argv[]) {
                 /* BWT Transformation */
                 case switchHash("BWT"): {
                     std::ofstream outputFile(exactFileName + "_BWTransformed." + savedExtension, std::ios_base::binary);        
-                    forwardBWT(inputFile, outputFile);
+
+                    std::string BWTString = forwardBWT(inputFile);
+
+                    printStringToFile(BWTString, outputFile);
                     break;
                 }
                 /* Inverse BW-Transformation */
