@@ -3,8 +3,8 @@
 
 #ifndef BW_TRANSFORM_HPP
 #define BW_TRANSFORM_HPP
-#define START '^'
-#define END '|'
+#define START 0x02
+#define END 0x03
 
 #include <iostream>
 #include <vector>
@@ -39,7 +39,7 @@ void forwardBWT(std::istream &is, std::ostream &os) {
             std::cout << "Input data cannot contain '^' or '|' chars." << std::endl;
         }
     }
- 
+
     //Create string to modify
     std::string temp;
     temp.push_back(START);
