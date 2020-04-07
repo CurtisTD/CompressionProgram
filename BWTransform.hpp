@@ -25,7 +25,9 @@ void rotate(std::string &toRotate) {
 }
 
 //Forward BWT- BW Transformation to data
-void forwardBWT(std::istream &is, std::ostream &os) {
+std::string forwardBWT(std::istream &is) {
+    std::string returnString;
+
     //Gets input data string
     char ch;
     std::string data;
@@ -57,16 +59,10 @@ void forwardBWT(std::istream &is, std::ostream &os) {
  
     std::string out;
     for (auto &temp : table) {
-        os <<  temp[temp.length() - 1];
+        returnString.push_back( temp[temp.length() - 1] );
     }
     
-    /*
-    std::cout << "BWTransformed Data: ";
-    printData(out);
-    std::cout << std::endl << std::endl;
-    */
-
-    //os << out;
+    return returnString;
 }
 
 /****************Inverse BWT Functions*********************/
