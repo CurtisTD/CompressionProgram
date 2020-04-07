@@ -102,33 +102,42 @@ int main (int argc, char* argv[]) {
                         std::string outpp = (exactFileName + "_RLEcompr." + savedExtension);
                         bmpEncode(inpp, outpp);
                         break;
-
                     } else if(savedExtension == "txt") {
-                        /* BWTransform RLE */
-                        std::cout << "This will use BW-Transformation before RLE." << std::endl;
-                        std::ofstream outputFileBWT(exactFileName + "_BWT." + savedExtension, std::ios_base::binary);
-                        forwardBWT(inputFile, outputFileBWT);
-                        inputFile.close();
-                        outputFileBWT.close();
+                        //Ask user to check file size before doing BWT, to cut down time/memory constraints
+                        char bwtAnswer;                        
+                        while(bwtAnswer != 'y' && bwtAnswer != 'n'){
+                            std::cout << "\nDo you want to use BWT on this file?" <<
+                            " (Only recommended for smaller < 5Kb text files) [y/n]: ";
+                            std::cin >> bwtAnswer;
+                        }
 
-                        //Input BWT file
-                        std::ifstream inputFileBWT(exactFileName + "_BWT." + savedExtension, std::ios_base::binary);
-                        //Output BWT->RLE file
-                        std::ofstream outputFileBWTRLE(exactFileName + "_BWT_RLEcompr." + savedExtension, std::ios_base::binary); 
+                        if(bwtAnswer == 'y') {
+                            /* BWTransform RLE */
+                            std::cout << "This will use BW-Transformation before RLE." << std::endl;
+                            std::ofstream outputFileBWT(exactFileName + "_BWT." + savedExtension, std::ios_base::binary);
+                            forwardBWT(inputFile, outputFileBWT);
+                            inputFile.close();
+                            outputFileBWT.close();
 
-                        runLengthEncode(inputFileBWT, outputFileBWTRLE);
-                        inputFileBWT.close();
-                        outputFileBWTRLE.close();
-                        
+                            //Input BWT file
+                            std::ifstream inputFileBWT(exactFileName + "_BWT." + savedExtension, std::ios_base::binary);
+                            //Output BWT->RLE file
+                            std::ofstream outputFileBWTRLE(exactFileName + "_BWT_RLEcompr." + savedExtension, std::ios_base::binary); 
 
-                        //Outputs RLE only on text file for testing
-                        /*
-                        std::ifstream inputFileRLE(argv[3], std::ios_base::binary);
-                        std::ofstream outputFileRLEOnly(exactFileName + "_RLEOnly." + savedExtension, std::ios_base::binary);
-                        runLengthEncode(inputFileRLE, outputFileRLEOnly);
-                        inputFileRLE.close();
-                        outputFileRLEOnly.close();
-                        */
+                            runLengthEncode(inputFileBWT, outputFileBWTRLE);
+                            inputFileBWT.close();
+                            outputFileBWTRLE.close();
+                        }
+
+                        //DEBUG: Outputs RLE only on text file for testing - set to 1 to create RLE only file
+                        bool flag = 0;
+                        if (flag || bwtAnswer == 'n') {
+                            std::ifstream inputFileRLE(argv[3], std::ios_base::binary);
+                            std::ofstream outputFileRLEOnly(exactFileName + "_RLEOnly." + savedExtension, std::ios_base::binary);
+                            runLengthEncode(inputFileRLE, outputFileRLEOnly);
+                            inputFileRLE.close();
+                            outputFileRLEOnly.close();
+                        }
                         break;
                     } else { 
                         std::ofstream outputFile(exactFileName + "_RLEcompr." + savedExtension, std::ios_base::binary); 
@@ -163,7 +172,10 @@ int main (int argc, char* argv[]) {
                         std::string outpp = (inpp + "_RLEdecompressed." + savedExtension);
                         bmpDecode(inpp, outpp);
                         break;
-                    } else if(savedExtension == "txt"){
+                   } else if(savedExtension == "txt"){
+                        //TODO
+                        /* Return as strings and create a function to save to a file instead */
+
                         //Undo RLE first
                         std::ofstream outInvertRLE(exactFileName + "_RLEdecomp." + savedExtension, std::ios_base::binary);
                         runLengthDecode(inputFile, outInvertRLE); //Undoes RLE
@@ -176,8 +188,8 @@ int main (int argc, char* argv[]) {
                         inverseBWT(inputBWTinvertedRLE, outinvertedBWTinvertedRLE);
                         inputBWTinvertedRLE.close();
                         outinvertedBWTinvertedRLE.close();
-                        break;
-                    
+
+                        break;                    
                     } else {
                         std::ofstream outputFile(exactFileName + "_RLEdecompressed." + savedExtension, std::ios_base::binary);        
                         runLengthDecode(inputFile, outputFile);

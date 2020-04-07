@@ -5,6 +5,9 @@ using std::cout;
 using std::endl;
 using std::ios;
 
+/* Add an escape to tell program that a number isn't part of the count */
+char escCharEndNum = 0x02;
+
 /*
 * Run Length Encoding
 * This function uses the RLE algorithm to encode/compress data
@@ -16,13 +19,13 @@ void runLengthEncode(std::istream &is, std::ostream &os){
     is.get(prev_ch); //Get first char of input stream
     while (is.get(ch)) {
         if(ch != prev_ch) { //Character has changed from a run
-            os << count << prev_ch;
             
+            os << count << escCharEndNum << prev_ch;
             count = 0; //Reset          
         }
         count++;
         prev_ch = ch; //Set prev_ch to char just read
-    } os << count << prev_ch; //Reads last character to output
+    } os << count << escCharEndNum << prev_ch; //Reads last character to output
 }
 
 /*
@@ -30,12 +33,33 @@ void runLengthEncode(std::istream &is, std::ostream &os){
 * This function uses the RLE algorithm to decode/decompress data
 */
 void runLengthDecode(std::istream &is, std::ostream &os){
+    //Holds number to print
+    std::string numToPrint;
+
     char ch; //Buffering character
     while (is.get(ch)) {
-        int numToPrint = ch - '0'; //Gets number of char
-        is.get(ch); //Gets character to print
-        while(numToPrint--){
-            os << ch;
+        numToPrint.push_back(ch);
+
+        //Gets number of chars to print
+        if(ch == escCharEndNum){
+            numToPrint.pop_back(); //Removes last char
+
+            //Then prints character after escape char
+            try {
+                int iterationsToPrint = std::stoi(numToPrint); //Converts to int to print
+                is.get(ch); //Gets char to print
+                while(iterationsToPrint--){
+                    os << ch;
+                }                
+            }
+            catch(std::invalid_argument const &exceptArg) {
+                std::cout << "Invalid argument when converting string to integer, RLE Decode." << std::endl;
+            }
+            catch(std::out_of_range const &exceptRange) {
+                std::cout << "Out of range exception when converting string to integer, RLE Decode." << std::endl;
+            }
+            
+            numToPrint = ""; //Clears num and starts again
         }
     }
 }
