@@ -18,5 +18,5 @@ Quanitzation: BMP images can now be quantized.
 BWT: Burrows–Wheeler Transformation of data, works in conjunction with RLE.
 
 ### To implement: 
-1. ~~RLE~~ and LZ on BWT data.
+1. ~~RLE on BWT data.~~
 2. Multiple character Huffman encoding (maybe to be combined with BWT).
