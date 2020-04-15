@@ -9,7 +9,8 @@ Lempel-Ziv: Currently compresses arbitrary data.
 
 Huffman Code: Currently compresses text files.
 
-RLE: Currently compresses arbitrary data, though RLE will not often shrink a file size without other modifications prior.
+RLE: Currently compresses arbitrary data, though RLE will not often shrink a file size without other modifications prior. For example, a text file of a Shakespeare excerpt would not have many patterns. 
+^This is planned to change by avoiding putting a '1' in front of single characters.
 
 Quanitzation: BMP images can now be quantized.
 
