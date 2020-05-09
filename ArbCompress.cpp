@@ -26,8 +26,11 @@ References:
 #include "LZ_Algorithms.hpp"
 #include "ImageQuantize.hpp"
 #include "Huff_Algo.hpp"
+//Transformations
 #include "BWTransform.hpp"
-
+//Encryptions
+#include "RSA_Encryption.hpp"
+#include "Cypher_Encryption.hpp"
 
 /*Global variables*/
 namespace globals {
@@ -91,6 +94,7 @@ int main (int argc, char* argv[]) {
 
     /*Determines the user's intention for the input file*/
     if (globals::allowedFileTypes.find(savedExtension) != globals::allowedFileTypes.end()) { //If file type is allowed      
+        
         /* Compression Algorithm Choices */  
         if(std::string("-c") == argv[1]){ 
             //Switch statement to chosen algorithm
@@ -241,6 +245,25 @@ int main (int argc, char* argv[]) {
                     return EXIT_FAILURE;
                 }
             }
+        } else if(std::string("-encrypt") == argv[1]) {
+            switch ( switchHash(algorithmChoice) ){
+                /* RSA Encryption */
+                case switchHash("RSA"): {
+                    //Runs the RSA program       
+                    RSA_Encryption(); 
+                    break;
+                }
+                /* Viginere Cypher */
+                case switchHash("Vig"): {
+                    //Runs the Vig Cypher program
+                    vigenereCypher();
+                    break;
+                }
+                default: {
+                    printCompressionInstructions();
+                    return EXIT_FAILURE;
+                }     
+            }   
         } else {
             //Print an error
             std::cout <<
