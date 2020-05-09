@@ -2,7 +2,7 @@
 #define HUFF_ALGO_HPP
 
 /* 
-HuffStringCompress:
+HuffAlgo:
 This program takes in a given string and uses Huffman encoding to compress it.
 Huffman encoding does this by finding the frequency of characters in the string and
 assigns 'codes' to represent the characters while satisying the prefix rule, which
