@@ -18,7 +18,13 @@ Quanitzation: BMP images can now be quantized.
 ## Currently implemented transformations:
 BWT: Burrows–Wheeler Transformation of data, works in conjunction with RLE.
 
-### To implement: 
+## Currently implemented encryption algorithms:
+RSA encryption
+
+Vigenere Cypher
+
+
+### To Do: 
 1. ~~RLE on BWT data.~~
 2. Multiple character Huffman encoding (maybe to be combined with BWT).
 3. RLE keeps single chars as is, only encodes necessary sequential characters.
